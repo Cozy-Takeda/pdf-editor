@@ -29,6 +29,11 @@ export default function HelpModal({ onClose }: HelpModalProps) {
             ブラウザだけで使えるPDF編集ツールです。
             アップロードしたファイルはインターネットに送信されないので、安心してご利用いただけます。
           </p>
+          <p className="text-gray-600">
+            パソコンでは左側の操作パネルを使いながら、右側のページ一覧だけをスクロールできます。
+            拡大縮小・選択したページの削除や回転・ダウンロードは左側にまとまっています。
+            スマートフォンでは上部の「操作」ボタンでパネルを開きます。
+          </p>
 
           {/* 基本的な流れ */}
           <section>
@@ -84,7 +89,7 @@ export default function HelpModal({ onClose }: HelpModalProps) {
             </table>
             <p className="font-medium text-gray-700 mb-1">選択を解除したいとき</p>
             <ul className="list-disc list-inside flex flex-col gap-1 text-gray-600">
-              <li>画面右の操作パネルにある「選択を解除」ボタンを押す</li>
+              <li>左側の操作パネルにある「選択を解除」ボタンを押す</li>
               <li>または、選択中のサムネイルを右クリックして「選択を解除」を選ぶ</li>
             </ul>
           </section>
@@ -119,7 +124,7 @@ export default function HelpModal({ onClose }: HelpModalProps) {
             </p>
             <p className="text-gray-600 mt-2">
               回転しても紙面の表示倍率は変わりません。
-              ページ一覧の「サムネイルの大きさ」はスライダーや＋・−で60〜300%に調整できます。
+              操作パネルの「サムネイルの大きさ」はスライダーや＋・−で60〜300%に調整できます。
               細かい文字は拡大して確認し、「標準に戻す」で100%に戻せます。
               画面より大きいページは一覧を横にスクロールして確認してください。
             </p>
@@ -174,7 +179,7 @@ export default function HelpModal({ onClose }: HelpModalProps) {
           <section>
             <h3 className="font-bold text-gray-800 text-base mb-2">6. ページ番号を追加する</h3>
             <ol className="list-decimal list-inside flex flex-col gap-1 text-gray-600 mb-3">
-              <li>操作パネルの「ページ番号を追加」ボタンを押す</li>
+              <li>操作パネルの「その他の操作」を開き、「ページ番号を追加」ボタンを押す</li>
               <li>設定画面で各項目を指定する</li>
               <li>「適用してダウンロード」を押すとページ番号入りのPDFが保存されます</li>
             </ol>
@@ -209,7 +214,7 @@ export default function HelpModal({ onClose }: HelpModalProps) {
           <section>
             <h3 className="font-bold text-gray-800 text-base mb-2">7. ダウンロードする</h3>
             <p className="text-gray-600">
-              画面下部の「PDFをダウンロード」ボタンを押すと、現在の並び順でPDFが保存されます。
+              操作パネル下部の「PDFをダウンロード」ボタンを押すと、現在の並び順でPDFが保存されます。
               ファイル名は自動で <code className="bg-gray-100 px-1 rounded text-xs">edited_日付_時刻.pdf</code> となります。
             </p>
           </section>
@@ -220,7 +225,7 @@ export default function HelpModal({ onClose }: HelpModalProps) {
           <section>
             <h3 className="font-bold text-gray-800 text-base mb-2">8. 最初からやり直す</h3>
             <p className="text-gray-600">
-              操作パネルの「すべてクリア」ボタンを押すと、読み込んだファイルとページがすべてリセットされます。
+              操作パネルの「その他の操作」にある「すべてクリア」ボタンを押すと、読み込んだファイルとページがすべてリセットされます。
             </p>
           </section>
 

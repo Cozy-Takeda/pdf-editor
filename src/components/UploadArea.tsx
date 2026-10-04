@@ -13,13 +13,13 @@ export default function UploadArea({ onFilesAdded, isProcessing }: UploadAreaPro
 
   const handleFiles = useCallback(
     (fileList: FileList | null) => {
-      if (!fileList) return;
+      if (!fileList || isProcessing) return;
       const pdfs = Array.from(fileList).filter(
         (f) => f.type === "application/pdf"
       );
       if (pdfs.length > 0) onFilesAdded(pdfs);
     },
-    [onFilesAdded]
+    [onFilesAdded, isProcessing]
   );
 
   const onDragOver = (e: React.DragEvent) => {
@@ -37,12 +37,22 @@ export default function UploadArea({ onFilesAdded, isProcessing }: UploadAreaPro
 
   return (
     <div
+      role="button"
+      aria-label="PDFファイルを追加"
+      aria-disabled={isProcessing}
+      tabIndex={isProcessing ? -1 : 0}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       onClick={() => !isProcessing && inputRef.current?.click()}
+      onKeyDown={(event) => {
+        if (!isProcessing && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          inputRef.current?.click();
+        }
+      }}
       className={`
-        border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
+        border-2 border-dashed rounded-xl px-4 py-3 cursor-pointer transition-colors shrink-0
         ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-white hover:border-blue-400 hover:bg-blue-50"}
         ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}
       `}
@@ -52,12 +62,17 @@ export default function UploadArea({ onFilesAdded, isProcessing }: UploadAreaPro
         type="file"
         accept=".pdf,application/pdf"
         multiple
+        disabled={isProcessing}
         className="hidden"
-        onChange={(e) => handleFiles(e.target.files)}
+        onClick={(event) => event.stopPropagation()}
+        onChange={(e) => {
+          handleFiles(e.target.files);
+          e.target.value = "";
+        }}
       />
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex items-center gap-3">
         <svg
-          className={`w-12 h-12 ${isDragging ? "text-blue-500" : "text-gray-400"}`}
+          className={`w-7 h-7 shrink-0 ${isDragging ? "text-blue-500" : "text-gray-400"}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -70,11 +85,11 @@ export default function UploadArea({ onFilesAdded, isProcessing }: UploadAreaPro
           />
         </svg>
         <div>
-          <p className="text-base font-medium text-gray-700">
-            PDFをドロップ、またはクリックして選択
+          <p className="text-sm font-medium text-gray-700">
+            PDFを追加
           </p>
-          <p className="text-sm text-gray-500 mt-1">
-            複数ファイル同時アップロード可
+          <p className="text-xs text-gray-500 mt-0.5">
+            ドロップ、またはクリックして選択（複数可）
           </p>
         </div>
       </div>

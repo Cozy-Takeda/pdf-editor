@@ -6,7 +6,6 @@ import UploadArea from "@/components/UploadArea";
 import OperationPanel from "@/components/OperationPanel";
 import DownloadButton from "@/components/DownloadButton";
 import HelpModal from "@/components/HelpModal";
-import ThumbnailSizeControl from "@/components/ThumbnailSizeControl";
 import type { PageItem, AppState, PageNumberSettings, RotationDirection } from "@/lib/types";
 import { normalizeRotation } from "@/lib/rotationUtils";
 
@@ -30,6 +29,7 @@ export default function Home() {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [processingLabel, setProcessingLabel] = useState("");
   const [thumbnailSize, setThumbnailSize] = useState(200);
+  const [showOperations, setShowOperations] = useState(false);
   const lastSelectedIndex = useRef<number>(-1);
 
   const setIsProcessing = (v: boolean) =>
@@ -228,10 +228,10 @@ export default function Home() {
   const fileNames = state.files.map((f) => f.name);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-dvh overflow-hidden bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+      <header className="bg-white border-b border-gray-200 shadow-sm shrink-0 z-40">
+        <div className="px-4 sm:px-6 h-14 flex items-center gap-3">
           <svg
             className="w-6 h-6 text-blue-600"
             fill="none"
@@ -249,7 +249,19 @@ export default function Home() {
           <span className="text-xs text-gray-400 hidden sm:inline">
             ブラウザ完結・データ送信なし
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              aria-controls="operation-sidebar"
+              aria-expanded={showOperations}
+              onClick={() => setShowOperations((open) => !open)}
+              className="md:hidden px-3 py-1.5 text-sm text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50"
+            >
+              操作
+              {state.pages.some((p) => p.selected) && (
+                <span className="ml-1">({state.pages.filter((p) => p.selected).length})</span>
+              )}
+            </button>
             <button
               onClick={() => setShowHelpModal(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -264,150 +276,172 @@ export default function Home() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex flex-col gap-6">
-        {/* Upload + Operation panel row */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-4">
-          <UploadArea
-            onFilesAdded={handleFilesAdded}
-            isProcessing={state.isProcessing}
+      <main className="flex-1 min-h-0 w-full p-3 sm:p-4 grid grid-cols-1 md:grid-cols-[260px_minmax(0,1fr)] gap-4">
+        {showOperations && (
+          <div
+            className="fixed inset-x-0 top-14 bottom-0 z-30 bg-black/30 md:hidden"
+            onClick={() => setShowOperations(false)}
           />
+        )}
+        <aside
+          id="operation-sidebar"
+          aria-label="操作パネル"
+          className={`${showOperations ? "flex" : "hidden"} md:flex fixed left-0 top-14 bottom-0 z-40 w-[280px] md:static md:w-auto min-h-0 flex-col bg-white border border-gray-200 md:rounded-xl shadow-sm`}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") setShowOperations(false);
+          }}
+        >
+          <div className="flex justify-end px-3 pt-2 md:hidden">
+            <button
+              type="button"
+              onClick={() => setShowOperations(false)}
+              className="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+            >閉じる</button>
+          </div>
           <OperationPanel
             pages={state.pages}
             files={state.files}
-            onDeleteSelected={handleDeleteSelected}
+            onDeleteSelected={() => {
+              handleDeleteSelected();
+              setShowOperations(false);
+            }}
             onDeleteOdd={handleDeleteOdd}
             onDeleteEven={handleDeleteEven}
-            onOpenPageNumberModal={() => setShowPageNumberModal(true)}
+            onOpenPageNumberModal={() => {
+              setShowOperations(false);
+              setShowPageNumberModal(true);
+            }}
             onClearAll={handleClearAll}
             onDeselectAll={handleDeselectAll}
             onRotateSelected={handleRotateSelected}
             isProcessing={state.isProcessing}
+            thumbnailSize={thumbnailSize}
+            onThumbnailSizeChange={setThumbnailSize}
           />
-        </div>
-
-        {/* File list */}
-        {state.files.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              読み込み済みファイル
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {state.files.map((f, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1.5 text-sm text-blue-800"
-                >
-                  <svg
-                    className="w-4 h-4 text-blue-500 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  <span className="max-w-[200px] truncate">{f.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Processing indicator */}
-        {state.isProcessing && (
-          <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700">
-            <svg
-              className="animate-spin w-5 h-5 flex-shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
-            {processingLabel || "処理中..."}
-          </div>
-        )}
-
-        {/* Page thumbnails */}
-        {state.pages.length > 0 && (
-          <div>
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-              <p className="text-sm font-semibold text-gray-700">
-                ページ一覧
-                <span className="ml-2 text-gray-400 font-normal">
-                  {state.pages.length}ページ
-                </span>
-              </p>
-              <p className="text-xs text-gray-400">
-                ドラッグで並び替え / チェックで選択 / ボタンで回転
-              </p>
-            </div>
-            <div className="mb-3 flex flex-col items-start gap-2">
-              <ThumbnailSizeControl value={thumbnailSize} onChange={setThumbnailSize} />
-              <p className="text-xs text-gray-500">
-                回転しても表示倍率は同じです。細かい文字は拡大して確認できます。
-              </p>
-            </div>
-            <PageGrid
-              pages={state.pages}
-              fileNames={fileNames}
-              onReorder={handleReorder}
-              onSelect={handleSelect}
-              onDeselectAll={handleDeselectAll}
-              onRotate={handleRotate}
+          <div className="shrink-0 border-t border-gray-100 p-3">
+            <DownloadButton
+              onClick={handleDownload}
               isProcessing={state.isProcessing}
-              shortSide={thumbnailSize}
-              files={state.files}
+              disabled={state.pages.length === 0}
             />
           </div>
-        )}
+        </aside>
 
-        {/* Empty state */}
-        {state.pages.length === 0 && !state.isProcessing && (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <svg
-              className="w-16 h-16 mb-4 opacity-30"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        <section aria-label="ページ編集" className="min-h-0 min-w-0 overflow-y-auto overscroll-contain flex flex-col gap-4 [scrollbar-gutter:stable]">
+          <UploadArea
+            onFilesAdded={handleFilesAdded}
+            isProcessing={state.isProcessing}
+          />
+
+          {/* File list */}
+          {state.files.length > 0 && (
+            <div className="bg-white rounded-lg border border-gray-200 p-3 shrink-0 flex flex-wrap items-center gap-2">
+              <p className="text-xs font-semibold text-gray-500">
+                読み込み済みファイル
+              </p>
+              <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                {state.files.map((f, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1.5 text-sm text-blue-800"
+                  >
+                    <svg
+                      className="w-4 h-4 text-blue-500 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className="max-w-[200px] truncate">{f.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Processing indicator */}
+          {state.isProcessing && (
+            <div className="shrink-0 flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700">
+              <svg
+                className="animate-spin w-5 h-5 flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              {processingLabel || "処理中..."}
+            </div>
+          )}
+
+          {/* Page thumbnails */}
+          {state.pages.length > 0 && (
+            <div className="shrink-0">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <p className="text-sm font-semibold text-gray-700">
+                  ページ一覧
+                  <span className="ml-2 text-gray-400 font-normal">
+                    {state.pages.length}ページ
+                  </span>
+                </p>
+                <p className="text-xs text-gray-400">
+                  ドラッグで並び替え / チェックで選択 / ボタンで回転
+                </p>
+              </div>
+              <PageGrid
+                pages={state.pages}
+                fileNames={fileNames}
+                onReorder={handleReorder}
+                onSelect={handleSelect}
+                onDeselectAll={handleDeselectAll}
+                onRotate={handleRotate}
+                isProcessing={state.isProcessing}
+                shortSide={thumbnailSize}
+                files={state.files}
               />
-            </svg>
-            <p className="text-sm">
-              PDFをアップロードすると、ここにページが表示されます
-            </p>
-          </div>
-        )}
-      </main>
+            </div>
+          )}
 
-      {/* Download button — sticky footer */}
-      <div className="sticky bottom-0 bg-white border-t border-gray-200 shadow-lg py-4 px-4 flex justify-center z-30">
-        <DownloadButton
-          onClick={handleDownload}
-          isProcessing={state.isProcessing}
-          disabled={state.pages.length === 0}
-        />
-      </div>
+          {/* Empty state */}
+          {state.pages.length === 0 && !state.isProcessing && (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 text-gray-400">
+              <svg
+                className="w-16 h-16 mb-4 opacity-30"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <p className="text-sm">
+                PDFをアップロードすると、ここにページが表示されます
+              </p>
+            </div>
+          )}
+        </section>
+      </main>
 
       {/* Help modal */}
       {showHelpModal && (
