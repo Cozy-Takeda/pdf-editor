@@ -6,7 +6,8 @@ import UploadArea from "@/components/UploadArea";
 import OperationPanel from "@/components/OperationPanel";
 import DownloadButton from "@/components/DownloadButton";
 import HelpModal from "@/components/HelpModal";
-import type { PageItem, AppState, PageNumberSettings } from "@/lib/types";
+import type { PageItem, AppState, PageNumberSettings, RotationDirection } from "@/lib/types";
+import { normalizeRotation } from "@/lib/rotationUtils";
 
 // Dynamically import components that use pdfjs-dist (SSR-incompatible)
 const PageGrid = dynamic(() => import("@/components/PageGrid"), { ssr: false });
@@ -66,6 +67,7 @@ export default function Home() {
           pageIndex: pi,
           sourceFileIndex: baseIndex + fi,
           thumbnail: thumbnails[pi],
+          rotation: 0,
           selected: false,
         });
       }
@@ -80,6 +82,24 @@ export default function Home() {
   }, []);
 
   // --- Page operations ---
+  const handleRotate = useCallback((id: string, direction: RotationDirection) => {
+    setState((s) => s.isProcessing ? s : ({
+      ...s,
+      pages: s.pages.map((p) => p.id === id
+        ? { ...p, rotation: normalizeRotation(p.rotation + direction) }
+        : p),
+    }));
+  }, []);
+
+  const handleRotateSelected = useCallback((direction: RotationDirection) => {
+    setState((s) => s.isProcessing ? s : ({
+      ...s,
+      pages: s.pages.map((p) => p.selected
+        ? { ...p, rotation: normalizeRotation(p.rotation + direction) }
+        : p),
+    }));
+  }, []);
+
   const handleReorder = useCallback((pages: PageItem[]) => {
     setState((s) => ({ ...s, pages }));
   }, []);
@@ -256,6 +276,8 @@ export default function Home() {
             onOpenPageNumberModal={() => setShowPageNumberModal(true)}
             onClearAll={handleClearAll}
             onDeselectAll={handleDeselectAll}
+            onRotateSelected={handleRotateSelected}
+            isProcessing={state.isProcessing}
           />
         </div>
 
@@ -328,7 +350,7 @@ export default function Home() {
                 </span>
               </p>
               <p className="text-xs text-gray-400">
-                ドラッグで並び替え / チェックで選択
+                ドラッグで並び替え / チェックで選択 / ボタンで回転
               </p>
             </div>
             <PageGrid
@@ -337,6 +359,8 @@ export default function Home() {
               onReorder={handleReorder}
               onSelect={handleSelect}
               onDeselectAll={handleDeselectAll}
+              onRotate={handleRotate}
+              isProcessing={state.isProcessing}
             />
           </div>
         )}

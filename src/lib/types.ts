@@ -1,8 +1,12 @@
+export type PageRotation = 0 | 90 | 180 | 270;
+export type RotationDirection = -90 | 90;
+
 export type PageItem = {
   id: string;
   pageIndex: number;
   sourceFileIndex: number;
   thumbnail: string;
+  rotation: PageRotation;
   selected: boolean;
 };
 

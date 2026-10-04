@@ -35,7 +35,7 @@ export default function HelpModal({ onClose }: HelpModalProps) {
             <h3 className="font-bold text-gray-800 text-base mb-2">基本的な流れ</h3>
             <ol className="list-decimal list-inside flex flex-col gap-1 text-gray-600">
               <li>PDFを読み込む</li>
-              <li>ページを並び替え・削除する</li>
+              <li>ページを並び替え・回転・削除する</li>
               <li>ダウンロードする</li>
             </ol>
           </section>
@@ -103,6 +103,20 @@ export default function HelpModal({ onClose }: HelpModalProps) {
               <li>選択したページのどれかをドラッグする</li>
               <li>選択したページがまとめて移動します</li>
             </ol>
+          </section>
+
+          <hr className="border-gray-100" />
+
+          <section>
+            <h3 className="font-bold text-gray-800 text-base mb-2">ページを回転する</h3>
+            <p className="text-gray-600 mb-2">
+              各ページの「左へ90°」「右へ90°」ボタンで、そのページだけを回転できます。
+              複数ページを選択すると、操作パネルの同じボタンで選択中のページをまとめて回転できます。
+            </p>
+            <p className="text-gray-600">
+              回転した向きはサムネイルとダウンロードするPDFに反映されます。
+              逆方向に回転すると元に戻せます。ページ番号は回転後の向きに合わせて下側に追加されます。
+            </p>
           </section>
 
           <hr className="border-gray-100" />

@@ -3,7 +3,8 @@
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { PageItem } from "@/lib/types";
+import type { PageItem, RotationDirection } from "@/lib/types";
+import PagePreview from "./PagePreview";
 
 interface PageThumbnailProps {
   page: PageItem;
@@ -11,6 +12,8 @@ interface PageThumbnailProps {
   fileNames: string[];
   onSelect: (id: string, event: React.MouseEvent) => void;
   onContextMenu: (x: number, y: number) => void;
+  onRotate: (id: string, direction: RotationDirection) => void;
+  isProcessing: boolean;
 }
 
 export default function PageThumbnail({
@@ -19,6 +22,8 @@ export default function PageThumbnail({
   fileNames,
   onSelect,
   onContextMenu,
+  onRotate,
+  isProcessing,
 }: PageThumbnailProps) {
   const {
     attributes,
@@ -73,7 +78,7 @@ export default function PageThumbnail({
         )}
       </button>
 
-{/* Drag handle area (covers the thumbnail image) */}
+      {/* Drag handle area (covers the thumbnail image) */}
       <div
         className="w-full mt-3 bg-gray-100 rounded overflow-hidden cursor-grab active:cursor-grabbing"
         {...attributes}
@@ -81,12 +86,10 @@ export default function PageThumbnail({
         onClick={(e) => onSelect(page.id, e)}
       >
         {page.thumbnail ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={page.thumbnail}
-            alt={`Page ${index + 1}`}
-            className="w-full object-contain"
-            draggable={false}
+          <PagePreview
+            thumbnail={page.thumbnail}
+            rotation={page.rotation}
+            alt={`ページ ${index + 1}`}
           />
         ) : (
           <div className="h-36 flex items-center justify-center">
@@ -110,6 +113,23 @@ export default function PageThumbnail({
       {/* Page number */}
       <div className="mt-1 text-xs text-gray-600 font-medium">
         p.{index + 1}
+      </div>
+      <div className="mt-2 flex w-full gap-1">
+        {([-90, 90] as const).map((direction) => (
+          <button
+            key={direction}
+            type="button"
+            disabled={isProcessing}
+            aria-label={`ページ ${index + 1} を${direction === -90 ? "左" : "右"}へ90°回転`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onRotate(page.id, direction);
+            }}
+            className="flex-1 rounded border border-gray-200 px-1 py-1.5 text-xs text-gray-600 hover:border-blue-300 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {direction === -90 ? "↶ 左へ90°" : "↷ 右へ90°"}
+          </button>
+        ))}
       </div>
       {fileNames.length > 1 && (
         <div

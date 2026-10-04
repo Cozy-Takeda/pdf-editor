@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { PageItem } from "@/lib/types";
+import type { PageItem, RotationDirection } from "@/lib/types";
 
 interface OperationPanelProps {
   pages: PageItem[];
@@ -12,6 +12,8 @@ interface OperationPanelProps {
   onOpenPageNumberModal: () => void;
   onClearAll: () => void;
   onDeselectAll: () => void;
+  onRotateSelected: (direction: RotationDirection) => void;
+  isProcessing: boolean;
 }
 
 export default function OperationPanel({
@@ -23,6 +25,8 @@ export default function OperationPanel({
   onOpenPageNumberModal,
   onClearAll,
   onDeselectAll,
+  onRotateSelected,
+  isProcessing,
 }: OperationPanelProps) {
   const selectedCount = pages.filter((p) => p.selected).length;
 
@@ -37,6 +41,20 @@ export default function OperationPanel({
         <>
           <div className="flex flex-col gap-2">
             <p className="text-xs text-gray-500 font-medium">選択中のページ</p>
+            <div className="flex gap-2">
+              {([-90, 90] as const).map((direction) => (
+                <button
+                  key={direction}
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={() => onRotateSelected(direction)}
+                  aria-label={`選択した${selectedCount}ページを${direction === -90 ? "左" : "右"}へ90°回転`}
+                  className="flex-1 px-2 py-2 text-sm rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {direction === -90 ? "↶ 左へ90°" : "↷ 右へ90°"}
+                </button>
+              ))}
+            </div>
             <button
               onClick={onDeleteSelected}
               className="w-full px-3 py-2 text-sm rounded-lg border border-red-200 text-red-700 hover:bg-red-50 transition-colors text-left"

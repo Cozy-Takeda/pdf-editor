@@ -17,7 +17,8 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import PageThumbnail from "./PageThumbnail";
-import type { PageItem } from "@/lib/types";
+import PagePreview from "./PagePreview";
+import type { PageItem, RotationDirection } from "@/lib/types";
 
 interface PageGridProps {
   pages: PageItem[];
@@ -25,6 +26,8 @@ interface PageGridProps {
   onReorder: (pages: PageItem[]) => void;
   onSelect: (id: string, event: React.MouseEvent) => void;
   onDeselectAll: () => void;
+  onRotate: (id: string, direction: RotationDirection) => void;
+  isProcessing: boolean;
 }
 
 export default function PageGrid({
@@ -33,6 +36,8 @@ export default function PageGrid({
   onReorder,
   onSelect,
   onDeselectAll,
+  onRotate,
+  isProcessing,
 }: PageGridProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -117,6 +122,8 @@ export default function PageGrid({
               fileNames={fileNames}
               onSelect={onSelect}
               onContextMenu={handleContextMenu}
+              onRotate={onRotate}
+              isProcessing={isProcessing}
             />
           ))}
         </div>
@@ -153,12 +160,10 @@ export default function PageGrid({
           <div className="relative w-44 opacity-95 rotate-2 shadow-2xl">
             <div className="bg-white rounded-lg border-2 border-blue-500 p-2 flex flex-col items-center">
               {activePage.thumbnail && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={activePage.thumbnail}
-                  alt="dragging"
-                  className="w-full object-contain rounded"
-                  draggable={false}
+                <PagePreview
+                  thumbnail={activePage.thumbnail}
+                  rotation={activePage.rotation}
+                  alt={`移動中のページ ${activeIndex + 1}`}
                 />
               )}
               <div className="mt-1 text-xs text-gray-600 font-medium">

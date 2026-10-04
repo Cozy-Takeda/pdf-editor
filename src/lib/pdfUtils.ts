@@ -1,7 +1,8 @@
 "use client";
 
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, degrees, rgb, StandardFonts } from "pdf-lib";
 import type { PageItem, PageNumberSettings } from "./types";
+import { normalizeRotation } from "./rotationUtils";
 
 export async function buildPdf(
   files: File[],
@@ -22,6 +23,9 @@ export async function buildPdf(
   for (const pageItem of pages) {
     const sourcePdf = sourcePdfs[pageItem.sourceFileIndex];
     const [copiedPage] = await pdfDoc.copyPages(sourcePdf, [pageItem.pageIndex]);
+    copiedPage.setRotation(degrees(normalizeRotation(
+      copiedPage.getRotation().angle + pageItem.rotation
+    )));
     pdfDoc.addPage(copiedPage);
   }
 
@@ -36,25 +40,48 @@ export async function buildPdf(
 
     for (let i = startPage - 1; i < clampedEnd; i++) {
       const page = pdfDoc.getPage(i);
-      const { width, height } = page.getSize();
+      // Use the visible page area, including PDFs with an offset crop box.
+      const crop = page.getCropBox();
+      const media = page.getMediaBox();
+      const left = Math.max(crop.x, media.x);
+      const bottom = Math.max(crop.y, media.y);
+      const width = Math.min(crop.x + crop.width, media.x + media.width) - left;
+      const height = Math.min(crop.y + crop.height, media.y + media.height) - bottom;
+      const rotation = normalizeRotation(page.getRotation().angle);
+      const visibleWidth = rotation === 90 || rotation === 270 ? height : width;
       const pageNum = startNumber + (i - (startPage - 1));
       const text = String(pageNum);
       const textWidth = font.widthOfTextAtSize(text, fontSize);
 
-      let x: number;
-      const y = 20;
+      let displayX: number;
+      const displayY = 20;
 
       if (position === "bottom-center") {
-        x = (width - textWidth) / 2;
+        displayX = (visibleWidth - textWidth) / 2;
       } else if (position === "bottom-right") {
-        x = width - textWidth - 20;
+        displayX = visibleWidth - textWidth - 20;
       } else {
-        x = 20;
+        displayX = 20;
+      }
+
+      // Map displayed coordinates back into the source page coordinates.
+      let x = displayX;
+      let y = displayY;
+      if (rotation === 90) {
+        x = width - displayY;
+        y = displayX;
+      } else if (rotation === 180) {
+        x = width - displayX;
+        y = height - displayY;
+      } else if (rotation === 270) {
+        x = displayY;
+        y = height - displayX;
       }
 
       page.drawText(text, {
-        x,
-        y,
+        x: left + x,
+        y: bottom + y,
+        rotate: degrees(rotation),
         size: fontSize,
         font,
         color: rgb(0, 0, 0),

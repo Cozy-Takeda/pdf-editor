@@ -1,3 +1,12 @@
+# PDF Editor
+
+ブラウザ上でPDFの並び替え・削除・ページごとの回転・結合・ページ番号の追加を行うアプリです。
+
+- 既存の公開サイト: https://pdf-editor-three-brown.vercel.app/
+- ソースリポジトリ: https://github.com/Cozy-Takeda/pdf-editor
+
+公開サイトはVercelでホストされています。公開サイトへの反映方法は、Vercel側の接続リポジトリ・本番ブランチ・デプロイ設定を確認してください。作業環境内での変更やビルドだけでは、公開サイトへの反映は確認できません。
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
