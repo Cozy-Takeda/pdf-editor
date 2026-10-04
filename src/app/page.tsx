@@ -151,35 +151,28 @@ export default function Home() {
     []
   );
 
-  const handleDeleteOne = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      pages: s.pages.filter((p) => p.id !== id),
-    }));
-  }, []);
+  const handleDeletePages = useCallback((target: "selected" | "odd" | "even") => {
+    if (state.isProcessing) return;
+    // Odd/even refers to the current order, including all uploaded PDFs.
+    const ids = new Set(state.pages.filter((page, index) => {
+      if (target === "selected") return page.selected;
+      return index % 2 === (target === "odd" ? 0 : 1);
+    }).map((page) => page.id));
+    if (ids.size === 0) return;
 
-  const handleDeleteSelected = useCallback(() => {
-    setState((s) => ({
-      ...s,
-      pages: s.pages.filter((p) => !p.selected),
-    }));
-  }, []);
+    const label = target === "selected" ? "選択したページ" :
+      `現在の並び順の${target === "odd" ? "奇数" : "偶数"}ページ`;
+    if (!window.confirm(
+      `${label}（${ids.size}ページ）を削除しますか？\n\nこの操作は元に戻せません。元のPDFファイルは変更されません。`
+    )) return;
 
-  const handleDeleteOdd = useCallback(() => {
-    // Delete pages at odd positions (1-indexed: 1, 3, 5 → index 0, 2, 4)
-    setState((s) => ({
+    setState((s) => s.isProcessing ? s : ({
       ...s,
-      pages: s.pages.filter((_, i) => i % 2 !== 0),
+      pages: s.pages.filter((page) => !ids.has(page.id)),
     }));
-  }, []);
-
-  const handleDeleteEven = useCallback(() => {
-    // Delete pages at even positions (1-indexed: 2, 4, 6 → index 1, 3, 5)
-    setState((s) => ({
-      ...s,
-      pages: s.pages.filter((_, i) => i % 2 === 0),
-    }));
-  }, []);
+    lastSelectedIndex.current = -1;
+    setShowOperations(false);
+  }, [state.isProcessing, state.pages]);
 
   const handleDeselectAll = useCallback(() => {
     setState((s) => ({
@@ -189,8 +182,14 @@ export default function Home() {
   }, []);
 
   const handleClearAll = useCallback(() => {
+    if (state.isProcessing || (state.files.length === 0 && state.pages.length === 0)) return;
+    if (!window.confirm(
+      `読み込み済みの${state.files.length}ファイルと${state.pages.length}ページをすべてクリアしますか？\n\nこの操作は元に戻せません。元のPDFファイルは変更されません。`
+    )) return;
     setState({ files: [], pages: [], isProcessing: false });
-  }, []);
+    lastSelectedIndex.current = -1;
+    setShowOperations(false);
+  }, [state.isProcessing, state.files.length, state.pages.length]);
 
   // --- Download ---
   const handleDownload = useCallback(async () => {
@@ -301,12 +300,9 @@ export default function Home() {
           <OperationPanel
             pages={state.pages}
             files={state.files}
-            onDeleteSelected={() => {
-              handleDeleteSelected();
-              setShowOperations(false);
-            }}
-            onDeleteOdd={handleDeleteOdd}
-            onDeleteEven={handleDeleteEven}
+            onDeleteSelected={() => handleDeletePages("selected")}
+            onDeleteOdd={() => handleDeletePages("odd")}
+            onDeleteEven={() => handleDeletePages("even")}
             onOpenPageNumberModal={() => {
               setShowOperations(false);
               setShowPageNumberModal(true);

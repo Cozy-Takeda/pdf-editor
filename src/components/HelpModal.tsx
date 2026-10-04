@@ -139,6 +139,7 @@ export default function HelpModal({ onClose }: HelpModalProps) {
             <ol className="list-decimal list-inside flex flex-col gap-1 text-gray-600 mb-3">
               <li>削除したいページを選択する（複数可）</li>
               <li>操作パネル「選択中のページ」の「選択したページを削除」ボタンを押す</li>
+              <li>確認画面で削除するページ数を確認し、「OK」を押す。取りやめる場合は「キャンセル」を押す</li>
             </ol>
             <p className="font-medium text-gray-700 mb-1">奇数・偶数ページをまとめて削除する</p>
             <table className="w-full text-xs border border-gray-200 rounded-lg overflow-hidden mb-2">
@@ -159,6 +160,11 @@ export default function HelpModal({ onClose }: HelpModalProps) {
                 </tr>
               </tbody>
             </table>
+            <p className="text-gray-600 mb-2">
+              奇数・偶数ページの削除でも、現在の並び順での対象ページ数を確認してから実行します。
+              キャンセルするとページと選択状態は変わりません。削除後に元に戻す機能はありません。
+              元のPDFファイルは変更されません。
+            </p>
             <p className="text-xs text-gray-400">活用例：両面スキャンで取り込んだPDFから、裏面（偶数ページ）だけを一括削除できます。</p>
           </section>
 
@@ -225,7 +231,8 @@ export default function HelpModal({ onClose }: HelpModalProps) {
           <section>
             <h3 className="font-bold text-gray-800 text-base mb-2">8. 最初からやり直す</h3>
             <p className="text-gray-600">
-              操作パネルの「その他の操作」にある「すべてクリア」ボタンを押すと、読み込んだファイルとページがすべてリセットされます。
+              操作パネルの「その他の操作」にある「すべてクリア」ボタンを押すと、ファイル数とページ数の確認画面が表示されます。
+              「OK」を押すとすべてリセットされ、「キャンセル」で取りやめられます。
             </p>
           </section>
 

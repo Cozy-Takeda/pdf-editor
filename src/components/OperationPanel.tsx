@@ -99,7 +99,7 @@ export default function OperationPanel({
             </button>
             <button
               onClick={onDeleteEven}
-              disabled={isProcessing || pages.length === 0}
+              disabled={isProcessing || pages.length < 2}
               className="w-full px-3 py-2 text-sm rounded-lg border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-left"
             >
               偶数ページを削除
