@@ -51,6 +51,11 @@
 - 各ページをCanvasでレンダリングしてBase64画像として表示
 - サムネイルにはページ番号（`p.1`、`p.2`…）を表示
 - 複数ファイルがある場合、ファイル名（拡張子なし）をサムネイル下部に表示
+- 「サムネイルの大きさ」で60〜300%に調整可能（短辺120〜600px、標準200px）
+- 回転前後で紙面の表示倍率・面積を維持し、カードの幅と高さを入れ替える
+- カードは上端をそろえ、拡大時に画面を超えるページは一覧内で横スクロール
+- 拡大時は画面付近のページのみ高解像度で再描画（操作後250ms、端末倍率は最大2倍、長辺3200pxまで）
+- 表示倍率は出力PDF・選択・回転・並び順に影響しない
 
 ### 3. ページ選択
 
@@ -155,6 +160,8 @@ type PageItem = {
   pageIndex: number;     // ソースPDF内のページ番号（0始まり）
   sourceFileIndex: number; // どのファイルから来たか（filesの添字）
   thumbnail: string;     // Base64エンコードされた画像（Data URL）
+  thumbnailWidth: number; // 読み込み時のサムネイル幅（px）
+  thumbnailHeight: number; // 読み込み時のサムネイル高さ（px）
   rotation: 0 | 90 | 180 | 270; // 読み込み時の向きに対する追加回転角度
   selected: boolean;     // 選択状態
 };
@@ -192,12 +199,14 @@ src/
 │   ├── PageGrid.tsx          # サムネイルグリッド・DnD管理・コンテキストメニュー
 │   ├── PageThumbnail.tsx     # 個別サムネイル
 │   ├── PagePreview.tsx       # 回転・縦横比に対応する画像表示
+│   ├── ThumbnailSizeControl.tsx # 表示倍率の調整
 │   ├── PageNumberModal.tsx   # ページ番号設定モーダル
 │   └── DownloadButton.tsx    # ダウンロードボタン
 └── lib/
     ├── types.ts              # 型定義
     ├── pdfUtils.ts           # PDF生成・ダウンロード処理
     ├── rotationUtils.ts      # 回転角度の正規化
+    ├── previewUtils.ts       # 表示倍率を維持したプレビューサイズ
     └── thumbnailUtils.ts     # サムネイル生成処理
 ```
 

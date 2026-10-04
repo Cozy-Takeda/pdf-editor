@@ -5,6 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { PageItem, RotationDirection } from "@/lib/types";
 import PagePreview from "./PagePreview";
+import { getPreviewSize } from "@/lib/previewUtils";
 
 interface PageThumbnailProps {
   page: PageItem;
@@ -14,6 +15,8 @@ interface PageThumbnailProps {
   onContextMenu: (x: number, y: number) => void;
   onRotate: (id: string, direction: RotationDirection) => void;
   isProcessing: boolean;
+  shortSide: number;
+  file: File;
 }
 
 export default function PageThumbnail({
@@ -24,6 +27,8 @@ export default function PageThumbnail({
   onContextMenu,
   onRotate,
   isProcessing,
+  shortSide,
+  file,
 }: PageThumbnailProps) {
   const {
     attributes,
@@ -35,6 +40,7 @@ export default function PageThumbnail({
   } = useSortable({ id: page.id });
 
   const style: React.CSSProperties = {
+    width: getPreviewSize(page, shortSide).width + 20,
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
@@ -53,7 +59,7 @@ export default function PageThumbnail({
         relative flex flex-col items-center bg-white rounded-lg border-2 p-2 select-none
         ${isDragging ? "shadow-xl border-blue-400" : "shadow-sm border-gray-200 hover:border-blue-300"}
         ${page.selected ? "border-blue-500 bg-blue-50" : ""}
-        w-44
+        shrink-0
       `}
     >
       {/* Checkbox */}
@@ -87,8 +93,9 @@ export default function PageThumbnail({
       >
         {page.thumbnail ? (
           <PagePreview
-            thumbnail={page.thumbnail}
-            rotation={page.rotation}
+            page={page}
+            shortSide={shortSide}
+            file={file}
             alt={`ページ ${index + 1}`}
           />
         ) : (

@@ -6,6 +6,7 @@ import UploadArea from "@/components/UploadArea";
 import OperationPanel from "@/components/OperationPanel";
 import DownloadButton from "@/components/DownloadButton";
 import HelpModal from "@/components/HelpModal";
+import ThumbnailSizeControl from "@/components/ThumbnailSizeControl";
 import type { PageItem, AppState, PageNumberSettings, RotationDirection } from "@/lib/types";
 import { normalizeRotation } from "@/lib/rotationUtils";
 
@@ -28,6 +29,7 @@ export default function Home() {
   const [showPageNumberModal, setShowPageNumberModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [processingLabel, setProcessingLabel] = useState("");
+  const [thumbnailSize, setThumbnailSize] = useState(200);
   const lastSelectedIndex = useRef<number>(-1);
 
   const setIsProcessing = (v: boolean) =>
@@ -52,7 +54,7 @@ export default function Home() {
 
     for (let fi = 0; fi < newFiles.length; fi++) {
       const file = newFiles[fi];
-      const { thumbnails } = await generateAllThumbnails(
+      const { thumbnails, dimensions } = await generateAllThumbnails(
         file,
         (cur, total) => {
           setProcessingLabel(
@@ -67,6 +69,8 @@ export default function Home() {
           pageIndex: pi,
           sourceFileIndex: baseIndex + fi,
           thumbnail: thumbnails[pi],
+          thumbnailWidth: dimensions[pi].width,
+          thumbnailHeight: dimensions[pi].height,
           rotation: 0,
           selected: false,
         });
@@ -342,7 +346,7 @@ export default function Home() {
         {/* Page thumbnails */}
         {state.pages.length > 0 && (
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <p className="text-sm font-semibold text-gray-700">
                 ページ一覧
                 <span className="ml-2 text-gray-400 font-normal">
@@ -353,6 +357,12 @@ export default function Home() {
                 ドラッグで並び替え / チェックで選択 / ボタンで回転
               </p>
             </div>
+            <div className="mb-3 flex flex-col items-start gap-2">
+              <ThumbnailSizeControl value={thumbnailSize} onChange={setThumbnailSize} />
+              <p className="text-xs text-gray-500">
+                回転しても表示倍率は同じです。細かい文字は拡大して確認できます。
+              </p>
+            </div>
             <PageGrid
               pages={state.pages}
               fileNames={fileNames}
@@ -361,6 +371,8 @@ export default function Home() {
               onDeselectAll={handleDeselectAll}
               onRotate={handleRotate}
               isProcessing={state.isProcessing}
+              shortSide={thumbnailSize}
+              files={state.files}
             />
           </div>
         )}

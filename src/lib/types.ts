@@ -6,6 +6,8 @@ export type PageItem = {
   pageIndex: number;
   sourceFileIndex: number;
   thumbnail: string;
+  thumbnailWidth: number;
+  thumbnailHeight: number;
   rotation: PageRotation;
   selected: boolean;
 };

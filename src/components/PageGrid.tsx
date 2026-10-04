@@ -19,6 +19,7 @@ import {
 import PageThumbnail from "./PageThumbnail";
 import PagePreview from "./PagePreview";
 import type { PageItem, RotationDirection } from "@/lib/types";
+import { getPreviewSize } from "@/lib/previewUtils";
 
 interface PageGridProps {
   pages: PageItem[];
@@ -28,6 +29,8 @@ interface PageGridProps {
   onDeselectAll: () => void;
   onRotate: (id: string, direction: RotationDirection) => void;
   isProcessing: boolean;
+  shortSide: number;
+  files: File[];
 }
 
 export default function PageGrid({
@@ -38,6 +41,8 @@ export default function PageGrid({
   onDeselectAll,
   onRotate,
   isProcessing,
+  shortSide,
+  files,
 }: PageGridProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -111,21 +116,26 @@ export default function PageGrid({
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveId(null)}
     >
       <SortableContext items={pages.map((p) => p.id)} strategy={rectSortingStrategy}>
-        <div className="flex flex-wrap gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200 min-h-[220px]">
-          {pages.map((page, index) => (
-            <PageThumbnail
-              key={page.id}
-              page={page}
-              index={index}
-              fileNames={fileNames}
-              onSelect={onSelect}
-              onContextMenu={handleContextMenu}
-              onRotate={onRotate}
-              isProcessing={isProcessing}
-            />
-          ))}
+        <div className="overflow-x-auto bg-gray-50 rounded-xl border border-gray-200">
+          <div className="flex flex-wrap items-start gap-3 p-4 min-h-[220px]">
+            {pages.map((page, index) => (
+              <PageThumbnail
+                key={page.id}
+                page={page}
+                index={index}
+                fileNames={fileNames}
+                onSelect={onSelect}
+                onContextMenu={handleContextMenu}
+                onRotate={onRotate}
+                isProcessing={isProcessing}
+                shortSide={shortSide}
+                file={files[page.sourceFileIndex]}
+              />
+            ))}
+          </div>
         </div>
       </SortableContext>
 
@@ -157,12 +167,12 @@ export default function PageGrid({
       {/* ドラッグ中のオーバーレイ */}
       <DragOverlay>
         {activePage ? (
-          <div className="relative w-44 opacity-95 rotate-2 shadow-2xl">
+          <div className="relative opacity-95 rotate-2 shadow-2xl" style={{ width: getPreviewSize(activePage, shortSide).width + 20 }}>
             <div className="bg-white rounded-lg border-2 border-blue-500 p-2 flex flex-col items-center">
               {activePage.thumbnail && (
                 <PagePreview
-                  thumbnail={activePage.thumbnail}
-                  rotation={activePage.rotation}
+                  page={activePage}
+                  shortSide={shortSide}
                   alt={`移動中のページ ${activeIndex + 1}`}
                 />
               )}
